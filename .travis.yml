@@ -1,9 +1,14 @@
 language: python
 
+git:
+  depth: 1
+
+branches:
+  only:
+    - master
+
 env:
-  - SIMPLE_SERVER_PATH=tests/server.py
+  - SIMPLE_SERVER_PATH=jsonrpcdb/tests/server.py
 
 before_script:
-  - pwd
-  - ls $TRAVIS_BUILD_DIR
   - python $TRAVIS_BUILD_DIR/$SIMPLE_SERVER_PATH
