@@ -1,1 +1,6 @@
 language: python
+
+env:
+  - SIMPLE_SERVER_PATH=tests/server.py
+
+before_script: python $SIMPLE_SERVER_PATH
