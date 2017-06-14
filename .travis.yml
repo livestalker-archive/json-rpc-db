@@ -3,4 +3,7 @@ language: python
 env:
   - SIMPLE_SERVER_PATH=tests/server.py
 
-before_script: python $SIMPLE_SERVER_PATH
+before_script:
+  - pwd
+  - ls $TRAVIS_BUILD_DIR
+  - python $TRAVIS_BUILD_DIR/$SIMPLE_SERVER_PATH
