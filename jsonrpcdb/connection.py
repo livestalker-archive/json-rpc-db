@@ -22,7 +22,7 @@ class Connection(object):
         """
         self.conn_params = self._check_conn_params(**kwargs)
         if self.is_protected() and not self.is_auth():
-            self.conn_params['auth_token'] = self._get_auth_token()
+            self.conn_params['auth']['token'] = self._get_auth_token()
 
     def cursor(self):
         return Cursor(self)

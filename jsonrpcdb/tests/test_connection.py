@@ -51,3 +51,17 @@ class ConnectionTest(TestCase):
         }
         conn = Database.connect(**conn_params)
         self.assertEqual(True, conn.is_protected())
+
+    def test_is_auth(self):
+        conn_params = {
+            'port': 4000,
+            'user': 'test',
+            'password': 'test',
+            'auth': {
+                'type': 'token',
+                'method': 'login',
+                'field': 'auth'
+            }
+        }
+        conn = Database.connect(**conn_params)
+        self.assertEqual(True, conn.is_auth())
