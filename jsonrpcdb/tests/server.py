@@ -2,7 +2,9 @@ from werkzeug.wrappers import Response, Request
 from werkzeug.serving import run_simple
 
 from jsonrpc import JSONRPCResponseManager, dispatcher
+from jsonrpc.jsonrpc2 import JSONRPC20Request
 
+JSONRPC20Request.POSSIBLE_FIELDS.add('auth')
 
 @dispatcher.add_method
 def login(**kwargs):
