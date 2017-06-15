@@ -1,5 +1,8 @@
-from urllib.parse import urlunparse
 from .cursor import Cursor
+try:
+    from urllib.parse import urlunparse
+except ImportError:
+    from urlparse import urlunparse
 
 HTTP_PORT = 80
 DEFAULT_PORT = HTTP_PORT
