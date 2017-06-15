@@ -3,7 +3,6 @@ from werkzeug.serving import run_simple
 
 from jsonrpc import JSONRPCResponseManager, dispatcher
 
-
 @Request.application
 def app(request):
     dispatcher['scalar'] = lambda a: a

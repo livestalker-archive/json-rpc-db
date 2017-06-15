@@ -3,26 +3,37 @@ import jsonrpcdb as Database
 
 
 class ConnectionTest(TestCase):
-    def setUp(self):
-        conn_param = {
-            'host': 'localhost',
-            'port': 4000,
-            'database': 'jsonrpc',
-            'user': '',
-            'password': ''
-        }
-        self.conn = Database.connect(**conn_param)
+    def test_empty_conn_params(self):
+        conn_params = {}
+        conn = Database.connect(**conn_params)
+        self.assertEqual('http://localhost', conn.get_url())
 
-    def test_get_url(self):
-        dsn = 'http://localhost:4000/jsonrpc'
-        self.assertEqual(dsn, self.conn.get_url())
-        self.conn.conn_params['schema'] = 'https'
-        dsn = 'https://localhost:4000/jsonrpc'
-        self.assertEqual(dsn, self.conn.get_url())
-        dsn = 'https://localhost:4000/'
-        del self.conn.conn_params['database']
-        self.assertEqual(dsn, self.conn.get_url())
-        del self.conn.conn_params['port']
-        self.conn.conn_params['schema'] = 'http'
-        dsn = 'http://localhost/'
-        self.assertEqual(dsn, self.conn.get_url())
+    def test_conn_params(self):
+        conn_params = {
+            'database': 'json-rpc.php'
+        }
+        conn = Database.connect(**conn_params)
+        self.assertEqual('http://localhost/json-rpc.php', conn.get_url())
+
+        conn_params = {
+            'database': '/json-rpc.php'
+        }
+        conn = Database.connect(**conn_params)
+        self.assertEqual('http://localhost/json-rpc.php', conn.get_url())
+
+        conn_params = {
+            'host': 'test.com',
+            'port': 4000,
+            'database': '/json-rpc.php'
+        }
+        conn = Database.connect(**conn_params)
+        self.assertEqual('http://test.com:4000/json-rpc.php', conn.get_url())
+
+        conn_params = {
+            'schema': 'https',
+            'host': 'test.com',
+            'port': 4000,
+            'database': '/json-rpc.php'
+        }
+        conn = Database.connect(**conn_params)
+        self.assertEqual('https://test.com:4000/json-rpc.php', conn.get_url())

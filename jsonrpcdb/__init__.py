@@ -8,21 +8,24 @@ from .error import Error, InterfaceError, DatabaseError, DataError, OperationalE
     ProgrammingError, NotSupportedError
 
 
-def connect(**kwargs):
-    """
-    Create new database connection.
+def connect(*args, **kwargs):
+    """Create new connection to database.
 
-    The basic connection parameters are:
-    scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]
+    scheme://host[:port]][/path]
 
-    - *database*: path
-    - *user*: user name used to authenticate
-    - *password*: password used to authenticate
-    - *host*: json-rpc host
-    - *port*: connection port number
-    - *scheme*: http/https
-    - *auth_type*: None - without authentication, 'token' - token authorization
-    - *auth_field*: Field name for payload in token authorization
-    - *auth_method*: authentication JSON-RPC method
+    Args:
+        *args: positional arguments (not using at the moment)
+
+    Kwargs:
+        user (str): username
+        password (str): password
+        host (str): json-rpc host
+        port (int): port
+        database (str): path
+        schema (str): http/https
+        auth (dict): type, field, method
+
+    Returns:
+        Connection: connection object
     """
     return Connection(**kwargs)
