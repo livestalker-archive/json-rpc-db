@@ -37,3 +37,17 @@ class ConnectionTest(TestCase):
         }
         conn = Database.connect(**conn_params)
         self.assertEqual('https://test.com:4000/json-rpc.php', conn.get_url())
+
+    def test_is_protect(self):
+        conn_params = {
+            'port': 4000,
+            'user': 'test',
+            'password': 'test',
+            'auth': {
+                'type': 'token',
+                'method': 'login',
+                'field': 'auth'
+            }
+        }
+        conn = Database.connect(**conn_params)
+        self.assertEqual(True, conn.is_protected())

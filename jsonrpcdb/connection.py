@@ -9,7 +9,14 @@ DEFAULT_PATH = ''
 
 
 class Connection(object):
+    """Database connection object """
+
     def __init__(self, **kwargs):
+        """Create connection object.
+
+        Args:
+            **kwargs: connection parameters
+        """
         self.conn_params = self._check_conn_params(**kwargs)
         if self.is_protected() and not self.is_auth():
             self.conn_params['auth_token'] = self._get_auth_token()
@@ -71,6 +78,13 @@ class Connection(object):
         conn_params['host'] = kwargs.get('host', DEFAULT_HOST)
         conn_params['port'] = kwargs.get('port', DEFAULT_PORT)
         conn_params['schema'] = kwargs.get('schema', DEFAULT_SCHEMA)
+        auth = kwargs.get('auth', None)
+        if auth:
+            conn_params['auth'] = auth.copy()
+            if 'user' in kwargs:
+                conn_params['user'] = kwargs['user']
+            if 'password' in kwargs:
+                conn_params['password'] = kwargs['password']
         return conn_params
 
     def _get_auth_token(self):
@@ -82,13 +96,27 @@ class Connection(object):
                 'password': conn_params['password']
             }
         }
-        cur.execute(conn_params['auth_method'], params)
+        cur.execute(conn_params['auth']['method'], params)
         result = cur.fetchone()
         # TODO IndexError
         return result[0]
 
     def is_protected(self):
-        return True if self.conn_params.get('auth_type', None) else False
+        """Is json rpc protected?
+
+        Returns:
+          bool: Return True if auth key present in connection parameters.
+        """
+        return True if self.conn_params.get('auth', None) else False
 
     def is_auth(self):
-        return True if self.conn_params.get('auth_token', None) else False
+        """Are we authorized?
+
+        Returns:
+            bool: Return True if we have auth-token.
+        """
+        auth = self.conn_params.get('auth', None)
+        if auth:
+            auth_token = auth.get('token', None)
+            return True if auth_token else False
+        return False
