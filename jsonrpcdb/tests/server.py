@@ -33,6 +33,8 @@ def app(request):
         dispatcher['protected_res'] = lambda a: [a, a, a]
 
     response = JSONRPCResponseManager.handle(request.data, dispatcher)
+    if 'protected_res' in dispatcher:
+        del dispatcher['protected_res']
     return Response(response.json, mimetype='application/json')
 
 

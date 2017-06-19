@@ -74,3 +74,7 @@ class ConnectionTest(TestCase):
         cur.execute('protected_res', data)
         result = cur.fetchone()
         self.assertEqual((1,), result)
+        cur.auth.set_token('fail_token')
+        cur.execute('protected_res', data)
+        result = cur.fetchone()
+        self.assertEqual((1,), result)

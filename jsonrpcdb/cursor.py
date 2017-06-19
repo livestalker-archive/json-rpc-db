@@ -1,8 +1,8 @@
 import requests
 import json
 import collections
-from .auth import TokenAuth
-from .error import DataError
+
+from .error import DataError, DatabaseError
 
 ONE = 0
 MULTI = 1
@@ -31,16 +31,17 @@ class Cursor(object):
         # TODO IndexError
         payload.update(args[0])
         url = self.conn.get_url()
-        # TODO JSONDecodeError
         response = requests.post(url,
                                  json.dumps(payload),
                                  headers=self.headers,
                                  auth=self.auth)
-        response = response.json()
-        if self._is_execute_valid(response):
-            self._update_rowcount(response)
-            self._save_data(response)
-            # TODO raise
+        try:
+            response = response.json()
+            if self._is_execute_valid(response):
+                self._update_rowcount(response)
+                self._save_data(response)
+        except ValueError as e:
+            raise DatabaseError()
 
     def executemany(self, operation, *args):
         pass
