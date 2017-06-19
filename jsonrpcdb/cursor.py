@@ -1,7 +1,7 @@
 import requests
 import json
 import collections
-
+from .auth import TokenAuth
 from .error import DataError
 
 ONE = 0
@@ -14,6 +14,7 @@ class Cursor(object):
         self.arraysize = 1
         self._data = []
         self.conn = conn
+        self.auth = conn.auth
         if not headers:
             headers = {'content-type': 'application/json'}
         self.headers = headers
@@ -33,7 +34,8 @@ class Cursor(object):
         # TODO JSONDecodeError
         response = requests.post(url,
                                  json.dumps(payload),
-                                 headers=self.headers)
+                                 headers=self.headers,
+                                 auth=self.auth)
         response = response.json()
         if self._is_execute_valid(response):
             self._update_rowcount(response)
@@ -85,17 +87,13 @@ class Cursor(object):
     def _save_data(self, data):
         self._data = data['result']
 
-    def _get_payload_template(self):
-        conn_params = self.conn.conn_params
+    def _get_payload_template(self, params=None):
+        if not params:
+            params = {}
         payload_template = {
             "method": "",
-            "params": {},
+            "params": params,
             "jsonrpc": "2.0",
             "id": 0,
         }
-        if self.conn.is_protected():
-            if self.conn.is_auth():
-                payload_template['auth'] = conn_params['auth_token']
-            else:
-                payload_template['auth'] = None
         return payload_template

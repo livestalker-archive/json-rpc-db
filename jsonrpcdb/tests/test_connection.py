@@ -1,5 +1,6 @@
 from unittest import TestCase
 import jsonrpcdb as Database
+from jsonrpcdb.auth import TokenAuth
 
 
 class ConnectionTest(TestCase):
@@ -43,11 +44,7 @@ class ConnectionTest(TestCase):
             'port': 4000,
             'user': 'test',
             'password': 'test',
-            'auth': {
-                'type': 'token',
-                'method': 'login',
-                'field': 'auth'
-            }
+            'auth_type': 'token'
         }
         conn = Database.connect(**conn_params)
         self.assertEqual(True, conn.is_protected())
@@ -57,11 +54,7 @@ class ConnectionTest(TestCase):
             'port': 4000,
             'user': 'test',
             'password': 'test',
-            'auth': {
-                'type': 'token',
-                'method': 'login',
-                'field': 'auth'
-            }
+            'auth_type': 'token'
         }
         conn = Database.connect(**conn_params)
         self.assertEqual(True, conn.is_auth())

@@ -1,4 +1,6 @@
+from .auth import TokenAuth
 from .cursor import Cursor
+
 try:
     from urllib.parse import urlunparse
 except ImportError:
@@ -9,6 +11,8 @@ DEFAULT_PORT = HTTP_PORT
 DEFAULT_HOST = 'localhost'
 DEFAULT_SCHEMA = 'http'
 DEFAULT_PATH = ''
+
+AUTH_TOKEN = 'token'
 
 
 class Connection(object):
@@ -21,8 +25,7 @@ class Connection(object):
             **kwargs: connection parameters
         """
         self.conn_params = self._check_conn_params(**kwargs)
-        if self.is_protected() and not self.is_auth():
-            self.conn_params['auth']['token'] = self._get_auth_token()
+        self._check_auth_params(**kwargs)
 
     def cursor(self):
         return Cursor(self)
@@ -81,14 +84,15 @@ class Connection(object):
         conn_params['host'] = kwargs.get('host', DEFAULT_HOST)
         conn_params['port'] = kwargs.get('port', DEFAULT_PORT)
         conn_params['schema'] = kwargs.get('schema', DEFAULT_SCHEMA)
-        auth = kwargs.get('auth', None)
-        if auth:
-            conn_params['auth'] = auth.copy()
-            if 'user' in kwargs:
-                conn_params['user'] = kwargs['user']
-            if 'password' in kwargs:
-                conn_params['password'] = kwargs['password']
         return conn_params
+
+    def _check_auth_params(self, **kwargs):
+        auth_type = kwargs.get('auth_type', None)
+        if auth_type:
+            self.auth = self._create_auth(kwargs['user'], kwargs['password'])
+        else:
+            self.auth = None
+        self.conn_params['auth_type'] = auth_type
 
     def _get_auth_token(self):
         conn_params = self.conn_params
@@ -110,7 +114,7 @@ class Connection(object):
         Returns:
           bool: Return True if auth key present in connection parameters.
         """
-        return True if self.conn_params.get('auth', None) else False
+        return True if self.conn_params.get('auth_type', None) else False
 
     def is_auth(self):
         """Are we authorized?
@@ -118,8 +122,11 @@ class Connection(object):
         Returns:
             bool: Return True if we have auth-token.
         """
-        auth = self.conn_params.get('auth', None)
+        auth = self.auth
         if auth:
-            auth_token = auth.get('token', None)
+            auth_token = auth.token
             return True if auth_token else False
         return False
+
+    def _create_auth(self, username, password):
+        return TokenAuth(self, username, password)
