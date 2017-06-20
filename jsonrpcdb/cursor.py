@@ -2,7 +2,7 @@ import requests
 import json
 import collections
 
-from .error import DataError, DatabaseError
+from .error import DataError, DatabaseError, OperationalError, check_response
 
 ONE = 0
 MULTI = 1
@@ -39,9 +39,10 @@ class Cursor(object):
             response = response.json()
             if self._is_execute_valid(response):
                 self._update_rowcount(response)
+                check_response(response)
                 self._save_data(response)
         except ValueError as e:
-            raise DatabaseError()
+            raise OperationalError()
 
     def executemany(self, operation, *args):
         pass

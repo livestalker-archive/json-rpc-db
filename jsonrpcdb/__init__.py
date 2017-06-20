@@ -23,7 +23,7 @@ def connect(*args, **kwargs):
         port (int): port
         database (str): path
         schema (str): http/https
-        auth (dict): type, field, method
+        auth_type (str): authentication type (token)
 
     Returns:
         Connection: connection object
