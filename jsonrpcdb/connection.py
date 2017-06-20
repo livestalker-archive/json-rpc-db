@@ -7,12 +7,12 @@ except ImportError:
     from urlparse import urlunparse
 
 HTTP_PORT = 80
+
+# Default connection parameters
 DEFAULT_PORT = HTTP_PORT
 DEFAULT_HOST = 'localhost'
 DEFAULT_SCHEMA = 'http'
 DEFAULT_PATH = ''
-
-AUTH_TOKEN = 'token'
 
 
 class Connection(object):
@@ -22,10 +22,14 @@ class Connection(object):
         """Create connection object.
 
         Args:
-            **kwargs: connection parameters
+            schema (str): http/https
+            host (str): Host of json-rpc server
+            port (str): Port of json-rpc server.
+            database (str): Url path
+            auth_type (str): Authentication type
         """
-        self.conn_params = self._check_conn_params(**kwargs)
-        self._check_auth_params(**kwargs)
+        self._prepare_conn_params(**kwargs)
+        self._prepare_auth(**kwargs)
 
     def cursor(self):
         return Cursor(self)
@@ -67,7 +71,7 @@ class Connection(object):
         )
         return urlunparse(url_parts)
 
-    def _check_conn_params(self, **kwargs):
+    def _prepare_conn_params(self, **kwargs):
         """Check connection parameters.
 
         Fill empty parameters with default values.
@@ -84,29 +88,15 @@ class Connection(object):
         conn_params['host'] = kwargs.get('host', DEFAULT_HOST)
         conn_params['port'] = kwargs.get('port', DEFAULT_PORT)
         conn_params['schema'] = kwargs.get('schema', DEFAULT_SCHEMA)
-        return conn_params
+        self.conn_params = conn_params
 
-    def _check_auth_params(self, **kwargs):
+    def _prepare_auth(self, **kwargs):
         auth_type = kwargs.get('auth_type', None)
         if auth_type:
             self.auth = self._create_auth(kwargs['user'], kwargs['password'])
         else:
             self.auth = None
         self.conn_params['auth_type'] = auth_type
-
-    def _get_auth_token(self):
-        conn_params = self.conn_params
-        cur = self.cursor()
-        params = {
-            'params': {
-                'user': conn_params['user'],
-                'password': conn_params['password']
-            }
-        }
-        cur.execute(conn_params['auth']['method'], params)
-        result = cur.fetchone()
-        # TODO IndexError
-        return result[0]
 
     def is_protected(self):
         """Is json rpc protected?
@@ -129,4 +119,13 @@ class Connection(object):
         return False
 
     def _create_auth(self, username, password):
+        """ Create auth instance.
+
+        Args:
+            username (str): Username.
+            password (str): Password.
+
+        Returns:
+            TokenAuth: Auth instance.
+        """
         return TokenAuth(self, username, password)
