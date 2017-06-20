@@ -2,6 +2,9 @@ from requests import auth
 import json
 import requests
 
+from .error import OperationalError, check_response
+
+
 FN_USERNAME = 'user'
 """str: Default field name for username.
 
@@ -70,9 +73,15 @@ class TokenAuth(auth.AuthBase):
         return r
 
     def is_auth(self):
+        """Return True if we have token."""
         return True if self.token else False
 
     def get_auth_dict(self):
+        """Get auth dictionary.
+
+        Returns:
+            dict: Contain username and password.
+        """
         return {
             self.fn_username: self.username,
             self.fn_password: self.password
@@ -98,6 +107,10 @@ class TokenAuth(auth.AuthBase):
         response = requests.post(self.conn.get_url(),
                                  json.dumps(payload),
                                  headers=headers)
-        response = response.json()
-        # TODO error handler
-        self.set_token(response['result'])
+        try:
+            response = response.json()
+            check_response(response)
+            self.set_token(response['result'])
+        except ValueError as e:
+            self.set_token(None)
+            raise OperationalError()

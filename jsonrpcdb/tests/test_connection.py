@@ -1,6 +1,7 @@
 from unittest import TestCase
 import jsonrpcdb as Database
 from jsonrpcdb.auth import TokenAuth
+from jsonrpcdb.error import ProgrammingError
 
 
 class ConnectionTest(TestCase):
@@ -75,6 +76,5 @@ class ConnectionTest(TestCase):
         result = cur.fetchone()
         self.assertEqual((1,), result)
         cur.auth.set_token('fail_token')
-        cur.execute('protected_res', data)
-        result = cur.fetchone()
-        self.assertEqual((1,), result)
+        with self.assertRaises(ProgrammingError):
+            cur.execute('protected_res', data)

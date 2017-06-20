@@ -4,6 +4,13 @@ except ImportError:
     # Python 3
     StandardError = Exception
 
+# Standart json-rpc error codes
+PARSE_ERROR = -32700
+INVALID_REQUEST = -32600
+METHOD_NOT_FOUND = -32601
+INVALID_PARAMS = -32602
+INTERNAL_ERROR = -32603
+
 
 class Warning(Warning):
     """Exception raised for important warnings like data truncations
@@ -62,3 +69,20 @@ class NotSupportedError(DatabaseError):
         which is not supported by the database, e.g. requesting a
         .rollback() on a connection that does not support transaction or
         has transactions turned off."""
+
+
+def check_response(response):
+    if 'error' not in response:
+        return
+    error = response['error']
+    code = error.get('code', None)
+    message = error.get('message', '')
+    data = error.get('data', '')
+    if code == PARSE_ERROR or code == INVALID_REQUEST:
+        raise InterfaceError(code, message, data)
+    elif code == METHOD_NOT_FOUND or code == INVALID_PARAMS:
+        raise ProgrammingError(code, message, data)
+    elif code == INTERNAL_ERROR:
+        raise InternalError(code, message, data)
+    else:
+        raise DatabaseError(code, message, data)
