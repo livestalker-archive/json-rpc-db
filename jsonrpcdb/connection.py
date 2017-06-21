@@ -86,8 +86,9 @@ class Connection(object):
 
     def _prepare_auth(self, **kwargs):
         auth_type = kwargs.get('auth_type', None)
+        auth_params = kwargs.get('auth_params', {})
         if auth_type:
-            self.auth = self._create_auth(kwargs['user'], kwargs['password'])
+            self.auth = self._create_auth(kwargs['user'], kwargs['password'], **auth_params)
         else:
             self.auth = None
         self.conn_params['auth_type'] = auth_type
@@ -112,7 +113,7 @@ class Connection(object):
             return True if auth_token else False
         return False
 
-    def _create_auth(self, username, password):
+    def _create_auth(self, username, password, **kwargs):
         """ Create auth instance.
 
         Args:
@@ -122,4 +123,4 @@ class Connection(object):
         Returns:
             TokenAuth: Auth instance.
         """
-        return TokenAuth(self, username, password)
+        return TokenAuth(self, username, password, **kwargs)
