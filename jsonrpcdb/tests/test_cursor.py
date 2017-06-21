@@ -75,3 +75,32 @@ class CursorTest(TestCase):
         cur.execute('list_of_dict', data)
         result = cur.fetchone()
         self.assertEqual({'a': 4}, result)
+
+    def test_prepare_one_result(self):
+        cur = self.conn.cursor()
+        data = [
+            [],
+            1,
+            'test',
+            {'1': 1, '2': 2},
+            [1, 2, 3, 4],
+            ['test1', 'test2'],
+            [[1, 2, 3]],
+            [{'1': 1, '2': 2}],
+            [[]]
+        ]
+        must_be = [
+            tuple(),
+            (1, ),
+            ('test', ),
+            {'1': 1, '2': 2},
+            (1, ),
+            ('test1', ),
+            (1, 2, 3),
+            {'1': 1, '2': 2},
+            tuple()
+        ]
+        for ix in range(len(data)):
+            cur._data = data[ix]
+            res = cur._prepare_one_result()
+            self.assertEqual(must_be[ix], res)

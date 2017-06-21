@@ -11,6 +11,6 @@ env:
   - SIMPLE_SERVER_PATH=jsonrpcdb/tests/server.py
 
 before_script:
-  - python $TRAVIS_BUILD_DIR/$SIMPLE_SERVER_PATH &
+  - python $TRAVIS_BUILD_DIR/$SIMPLE_SERVER_PATH 1> /dev/null &
 
 script: python -m unittest discover
