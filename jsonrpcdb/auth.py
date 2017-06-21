@@ -31,7 +31,8 @@ class TokenAuth(auth.AuthBase):
                  login_method=DEFAULT_AUTH_METHOD,
                  fn_auth=FN_AUTH,
                  fn_username=FN_USERNAME,
-                 fn_password=FN_PASSWORD):
+                 fn_password=FN_PASSWORD,
+                 **kwargs):
         """
     Create AuthToken instance.
         Args:
