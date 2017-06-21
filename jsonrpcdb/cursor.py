@@ -135,25 +135,34 @@ class Cursor(object):
             * data = [dict, ...] -> data[0]
         """
         if isinstance(self._data, str):
+            self.rowcount = 1
             return (self._data,)  # data = str -> (str, )
         if isinstance(self._data, collections.Mapping):
+            self.rowcount = 1
             return self._data  # data = dict -> dict
         try:
             one = self._data[0]
         except TypeError:
+            self.rowcount = 1
             return (self._data,)  # data = s -> (s,)
         except IndexError:
+            self.rowcount = 0
             return tuple()  # data = [] -> tuple()
         # multiply results in array
         if isinstance(one, collections.Mapping):
+            self.rowcount = len(self._data) + 1
             return one  # data = [dict, ...] -> data[0]
         elif isinstance(one, str):
+            self.rowcount = len(self._data) + 1
             return (one,)  # data = [str, ...] -> (data[0],)
         else:
             try:
                 probe = one[0]
             except TypeError:
+                self.rowcount = len(self._data) + 1
                 return tuple([one])  # data = [s, s, ..., s] -> (data[0],)
             except IndexError:
+                self.rowcount = 0
                 return tuple()
+            self.rowcount = len(self._data) + 1
             return tuple(one)
