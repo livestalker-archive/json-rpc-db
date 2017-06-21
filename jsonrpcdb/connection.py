@@ -35,21 +35,15 @@ class Connection(object):
         return Cursor(self)
 
     def commit(self):
-        """
-        Do not support transactions, this method with void functionality.
-        """
+        """Do not support transactions, this method with void functionality."""
         pass
 
     def rollback(self):
-        """
-        Do not support transactions, this method with void functionality.
-        """
+        """Do not support transactions, this method with void functionality."""
         pass
 
     def close(self):
-        """
-        Do not support close, this method with void functionality.
-        """
+        """Do not support close, this method with void functionality."""
         pass
 
     def get_url(self):
