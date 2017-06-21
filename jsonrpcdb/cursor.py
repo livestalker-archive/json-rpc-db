@@ -25,6 +25,7 @@ class Cursor(object):
          produced (for DQL statements like SELECT ) or affected (for DML statements like UPDATE or INSERT )."""
         self.arraysize = 1
         self._data = None
+        self._pos = 0
         self.conn = conn
         """Connection: Read-only, reference to connection object."""
         self.auth = conn.auth
@@ -51,6 +52,9 @@ class Cursor(object):
             operation (str): Remote method.
             *args: Used only first argument, it should be dict with 'params' key.
         """
+        self.rowcount = -1
+        self._data = None
+        self._pos = 0
         if len(args) == 0:
             params = {
                 'params': None
@@ -78,13 +82,19 @@ class Cursor(object):
         pass
 
     def fetchone(self):
-        # TODO move by rows
         """Fetch the next row of a query result set, returning a single sequence,
         or None when no more data is available.
         """
-        return self._prepare_one_result()
+        try:
+            result = self._data[self._pos]
+            self._pos += 1
+            return result
+        except IndexError:
+            return None
 
     def fetchall(self):
+        """Fetch all (remaining) rows of a query result,
+        returning them as a sequence of sequences (e.g. a list of tuples)."""
         return self._prepare_all_result()
 
     def _update_rowcount(self, data):
@@ -94,7 +104,8 @@ class Cursor(object):
         return True
 
     def _save_data(self, data):
-        self._data = data['result']
+        result = data['result']
+        self._data = self._prepare_all_result(result)
 
     def _get_payload_template(self, params=None):
         if not params:
@@ -107,53 +118,7 @@ class Cursor(object):
         }
         return payload_template
 
-    def _prepare_one_result(self):
-        """ Prepare result for fetchone method.
-
-        Returns:
-            * data = [] -> None
-            * data = s -> (s,)
-            * data = str -> (str, )
-            * data = dict -> dict
-            * data = [s, s, ..., s] -> (data[0],)
-            * data = [str, ...] -> (data[0],)
-            * data = [array, ...] -> tuple(data[0])
-            * data = [dict, ...] -> data[0]
-        """
-        if isinstance(self._data, str):
-            self.rowcount = 1
-            return (self._data,)  # data = str -> (str, )
-        if isinstance(self._data, collections.Mapping):
-            self.rowcount = 1
-            return self._data  # data = dict -> dict
-        try:
-            one = self._data[0]
-        except TypeError:
-            self.rowcount = 1
-            return (self._data,)  # data = s -> (s,)
-        except IndexError:
-            self.rowcount = 0
-            return None  # data = [] -> None
-        # multiply results in array
-        if isinstance(one, collections.Mapping):
-            self.rowcount = len(self._data) + 1
-            return one  # data = [dict, ...] -> data[0]
-        elif isinstance(one, str):
-            self.rowcount = len(self._data) + 1
-            return (one,)  # data = [str, ...] -> (data[0],)
-        else:
-            try:
-                probe = one[0]
-            except TypeError:
-                self.rowcount = len(self._data) + 1
-                return tuple([one])  # data = [s, s, ..., s] -> (data[0],)
-            except IndexError:
-                self.rowcount = 0
-                return None
-            self.rowcount = len(self._data) + 1
-            return tuple(one)
-
-    def _prepare_all_result(self, ):
+    def _prepare_all_result(self, data):
         """
 
         Returns:
@@ -167,38 +132,38 @@ class Cursor(object):
             * data = [dict, ...] -> [dict, ...]
             * data = [[], ...] -> []
         """
-        if not self._data:
+        if not data:
             self.rowcount = 0
             return []  # data = [] -> []
-        if isinstance(self._data, str):
+        if isinstance(data, str):
             self.rowcount = 1
-            return [(self._data,)]  # data = str -> [(str, )]
-        if isinstance(self._data, collections.Mapping):
+            return [(data,)]  # data = str -> [(str, )]
+        if isinstance(data, collections.Mapping):
             self.rowcount = 1
-            return [self._data]  # data = dict -> [dict]
+            return [data]  # data = dict -> [dict]
         try:
-            one = self._data[0]
+            one = data[0]
         except TypeError:
             self.rowcount = 1
-            return [(self._data,)]  # data = s -> [(s,)]
+            return [(data,)]  # data = s -> [(s,)]
         except IndexError:
             self.rowcount = 0
             return []
         # multiply results in array
         if isinstance(one, collections.Mapping):
-            self.rowcount = len(self._data) + 1
-            return self._data  # data = [dict, ...] -> [dict, ...]
+            self.rowcount = len(data) + 1
+            return data  # data = [dict, ...] -> [dict, ...]
         elif isinstance(one, str):
-            self.rowcount = len(self._data) + 1
-            return [(el,) for el in self._data]  # data = [str, ...] -> [(str, ), ... ]
+            self.rowcount = len(data) + 1
+            return [(el,) for el in data]  # data = [str, ...] -> [(str, ), ... ]
         else:
             try:
                 probe = one[0]
             except TypeError:
-                self.rowcount = len(self._data) + 1
-                return [(el,) for el in self._data]  # data = [s, s, ..., s] -> [(s, ), (s, ), ... (s, )]
+                self.rowcount = len(data) + 1
+                return [(el,) for el in data]  # data = [s, s, ..., s] -> [(s, ), (s, ), ... (s, )]
             except IndexError:
                 self.rowcount = 0
                 return []
-        self.rowcount = len(self._data)
-        return [tuple(el) for el in self._data]
+        self.rowcount = len(data) + 1
+        return [tuple(el) for el in data]
