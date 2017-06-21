@@ -85,21 +85,7 @@ class Cursor(object):
         return self._prepare_one_result()
 
     def fetchall(self):
-        if not isinstance(self._data, collections.Iterable) or isinstance(self._data, str):
-            # raise DataError("Result of JSON RPC should be Iterable.")
-            return [(self._data,)]
-        if self._data:
-            data = self._data
-        else:
-            return []
-        probe = data[0]
-        if isinstance(probe, collections.Iterable):
-            if isinstance(probe, collections.Mapping):
-                return data
-            else:
-                return [tuple(el) for el in data]
-        else:
-            return [(el,) for el in data]
+        return self._prepare_all_result()
 
     def _update_rowcount(self, data):
         pass
@@ -125,7 +111,7 @@ class Cursor(object):
         """ Prepare result for fetchone method.
 
         Returns:
-            * data = [] -> tuple()
+            * data = [] -> None
             * data = s -> (s,)
             * data = str -> (str, )
             * data = dict -> dict
@@ -147,7 +133,7 @@ class Cursor(object):
             return (self._data,)  # data = s -> (s,)
         except IndexError:
             self.rowcount = 0
-            return tuple()  # data = [] -> tuple()
+            return None  # data = [] -> None
         # multiply results in array
         if isinstance(one, collections.Mapping):
             self.rowcount = len(self._data) + 1
@@ -163,6 +149,56 @@ class Cursor(object):
                 return tuple([one])  # data = [s, s, ..., s] -> (data[0],)
             except IndexError:
                 self.rowcount = 0
-                return tuple()
+                return None
             self.rowcount = len(self._data) + 1
             return tuple(one)
+
+    def _prepare_all_result(self, ):
+        """
+
+        Returns:
+            * data = [] -> []
+            * data = s -> [(s,)]
+            * data = str -> [(str, )]
+            * data = dict -> [dict]
+            * data = [s, s, ..., s] -> [(s, ), (s, ), ... (s, )]
+            * data = [str, ...] -> [(str, ), ... ]
+            * data = [array, ...] -> [tuple(array), ...]
+            * data = [dict, ...] -> [dict, ...]
+            * data = [[], ...] -> []
+        """
+        if not self._data:
+            self.rowcount = 0
+            return []  # data = [] -> []
+        if isinstance(self._data, str):
+            self.rowcount = 1
+            return [(self._data,)]  # data = str -> [(str, )]
+        if isinstance(self._data, collections.Mapping):
+            self.rowcount = 1
+            return [self._data]  # data = dict -> [dict]
+        try:
+            one = self._data[0]
+        except TypeError:
+            self.rowcount = 1
+            return [(self._data,)]  # data = s -> [(s,)]
+        except IndexError:
+            self.rowcount = 0
+            return []
+        # multiply results in array
+        if isinstance(one, collections.Mapping):
+            self.rowcount = len(self._data) + 1
+            return self._data  # data = [dict, ...] -> [dict, ...]
+        elif isinstance(one, str):
+            self.rowcount = len(self._data) + 1
+            return [(el,) for el in self._data]  # data = [str, ...] -> [(str, ), ... ]
+        else:
+            try:
+                probe = one[0]
+            except TypeError:
+                self.rowcount = len(self._data) + 1
+                return [(el,) for el in self._data]  # data = [s, s, ..., s] -> [(s, ), (s, ), ... (s, )]
+            except IndexError:
+                self.rowcount = 0
+                return []
+        self.rowcount = len(self._data)
+        return [tuple(el) for el in self._data]

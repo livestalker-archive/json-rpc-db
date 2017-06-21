@@ -90,17 +90,46 @@ class CursorTest(TestCase):
             [[]]
         ]
         must_be = [
-            tuple(),
-            (1, ),
-            ('test', ),
+            None,
+            (1,),
+            ('test',),
             {'1': 1, '2': 2},
-            (1, ),
-            ('test1', ),
+            (1,),
+            ('test1',),
             (1, 2, 3),
             {'1': 1, '2': 2},
-            tuple()
+            None
         ]
         for ix in range(len(data)):
             cur._data = data[ix]
             res = cur._prepare_one_result()
+            self.assertEqual(must_be[ix], res)
+
+    def test_prepare_all_result(self):
+        cur = self.conn.cursor()
+        data = [
+            [],
+            1,
+            'test',
+            {'1': 1, '2': 2},
+            [1, 2, 3, 4],
+            ['test1', 'test2'],
+            [[1, 2, 3]],
+            [{'1': 1, '2': 2}],
+            [[]]
+        ]
+        must_be = [
+            [],
+            [(1,)],
+            [('test',)],
+            [{'1': 1, '2': 2}],
+            [(1,), (2,), (3,), (4,)],
+            [('test1',), ('test2',)],
+            [(1, 2, 3)],
+            [{'1': 1, '2': 2}],
+            []
+        ]
+        for ix in range(len(data)):
+            cur._data = data[ix]
+            res = cur._prepare_all_result()
             self.assertEqual(must_be[ix], res)
