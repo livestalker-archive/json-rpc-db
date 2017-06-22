@@ -1,0 +1,4 @@
+[run]
+omit=
+    jsonrpcdb/tests/*
+source=jsonrpcdb

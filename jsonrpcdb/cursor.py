@@ -71,10 +71,9 @@ class Cursor(object):
                                  auth=self.auth)
         try:
             response = response.json()
-            if self._is_execute_valid(response):
-                check_response(response)
-                self._save_data(response)
-                self._update_rowcount(response)
+            check_response(response)
+            self._save_data(response)
+            self._update_rowcount(response)
         except ValueError as e:
             raise OperationalError()
 
@@ -98,19 +97,36 @@ class Cursor(object):
         return self._prepare_all_result()
 
     def _update_rowcount(self, data):
+        """Update rowcount.
+
+        Simple save len of transformed data.
+        """
         if self._data:
             self.rowcount = len(self._data) + 1
         else:
             self.rowcount = 0
 
-    def _is_execute_valid(self, data):
-        return True
-
     def _save_data(self, data):
+        """Get result of response.
+
+        Transform result and save it in _data attribute.
+        Args:
+            data (dict): Json response.
+
+        """
         result = data['result']
         self._data = self._prepare_all_result(result)
 
-    def _get_payload_template(self, params=None):
+    @staticmethod
+    def _get_payload_template(params=None):
+        """Construct payload template.
+
+        Args:
+            params: Additional params.
+
+        Returns:
+            dict: Return payload dict.
+        """
         if not params:
             params = {}
         payload_template = {
