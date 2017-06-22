@@ -19,6 +19,8 @@ class Cursor(object):
         self.description = tuple()
         """tuple: This read-only attribute is a sequence of 7-item sequences.
         Each of these sequences contains information describing one result column.
+        We do not have any information about structure of json rpc result.
+        So simple empty tuple.
         """
         self.rowcount = -1
         """int: This read-only attribute specifies the number of rows that the last .execute*()
@@ -71,14 +73,14 @@ class Cursor(object):
                                  auth=self.auth)
         try:
             response = response.json()
-            if self._is_execute_valid(response):
-                self._update_rowcount(response)
-                check_response(response)
-                self._save_data(response)
+            check_response(response)
+            self._save_data(response)
+            self._update_rowcount(response)
         except ValueError as e:
             raise OperationalError()
 
     def executemany(self, operation, *args):
+        # TODO realize method.
         pass
 
     def fetchone(self):
@@ -92,22 +94,48 @@ class Cursor(object):
         except IndexError:
             return None
 
+    def fetchmany(self, size=None):
+        # TODO realize method
+        if not size:
+            size = self.arraysize
+        return None
+
     def fetchall(self):
         """Fetch all (remaining) rows of a query result,
         returning them as a sequence of sequences (e.g. a list of tuples)."""
         return self._prepare_all_result()
 
     def _update_rowcount(self, data):
-        pass
+        """Update rowcount.
 
-    def _is_execute_valid(self, data):
-        return True
+        Simple save len of transformed data.
+        """
+        if self._data:
+            self.rowcount = len(self._data) + 1
+        else:
+            self.rowcount = 0
 
     def _save_data(self, data):
+        """Get result of response.
+
+        Transform result and save it in _data attribute.
+        Args:
+            data (dict): Json response.
+
+        """
         result = data['result']
         self._data = self._prepare_all_result(result)
 
-    def _get_payload_template(self, params=None):
+    @staticmethod
+    def _get_payload_template(params=None):
+        """Construct payload template.
+
+        Args:
+            params: Additional params.
+
+        Returns:
+            dict: Return payload dict.
+        """
         if not params:
             params = {}
         payload_template = {
@@ -133,37 +161,27 @@ class Cursor(object):
             * data = [[], ...] -> []
         """
         if not data:
-            self.rowcount = 0
             return []  # data = [] -> []
         if isinstance(data, str):
-            self.rowcount = 1
             return [(data,)]  # data = str -> [(str, )]
         if isinstance(data, collections.Mapping):
-            self.rowcount = 1
             return [data]  # data = dict -> [dict]
         try:
             one = data[0]
         except TypeError:
-            self.rowcount = 1
             return [(data,)]  # data = s -> [(s,)]
         except IndexError:
-            self.rowcount = 0
             return []
         # multiply results in array
         if isinstance(one, collections.Mapping):
-            self.rowcount = len(data) + 1
             return data  # data = [dict, ...] -> [dict, ...]
         elif isinstance(one, str):
-            self.rowcount = len(data) + 1
             return [(el,) for el in data]  # data = [str, ...] -> [(str, ), ... ]
         else:
             try:
                 probe = one[0]
             except TypeError:
-                self.rowcount = len(data) + 1
                 return [(el,) for el in data]  # data = [s, s, ..., s] -> [(s, ), (s, ), ... (s, )]
             except IndexError:
-                self.rowcount = 0
                 return []
-        self.rowcount = len(data) + 1
         return [tuple(el) for el in data]
