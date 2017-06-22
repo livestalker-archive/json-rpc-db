@@ -72,9 +72,9 @@ class Cursor(object):
         try:
             response = response.json()
             if self._is_execute_valid(response):
-                self._update_rowcount(response)
                 check_response(response)
                 self._save_data(response)
+                self._update_rowcount(response)
         except ValueError as e:
             raise OperationalError()
 
@@ -98,7 +98,10 @@ class Cursor(object):
         return self._prepare_all_result()
 
     def _update_rowcount(self, data):
-        pass
+        if self._data:
+            self.rowcount = len(self._data) + 1
+        else:
+            self.rowcount = 0
 
     def _is_execute_valid(self, data):
         return True
@@ -133,37 +136,27 @@ class Cursor(object):
             * data = [[], ...] -> []
         """
         if not data:
-            self.rowcount = 0
             return []  # data = [] -> []
         if isinstance(data, str):
-            self.rowcount = 1
             return [(data,)]  # data = str -> [(str, )]
         if isinstance(data, collections.Mapping):
-            self.rowcount = 1
             return [data]  # data = dict -> [dict]
         try:
             one = data[0]
         except TypeError:
-            self.rowcount = 1
             return [(data,)]  # data = s -> [(s,)]
         except IndexError:
-            self.rowcount = 0
             return []
         # multiply results in array
         if isinstance(one, collections.Mapping):
-            self.rowcount = len(data) + 1
             return data  # data = [dict, ...] -> [dict, ...]
         elif isinstance(one, str):
-            self.rowcount = len(data) + 1
             return [(el,) for el in data]  # data = [str, ...] -> [(str, ), ... ]
         else:
             try:
                 probe = one[0]
             except TypeError:
-                self.rowcount = len(data) + 1
                 return [(el,) for el in data]  # data = [s, s, ..., s] -> [(s, ), (s, ), ... (s, )]
             except IndexError:
-                self.rowcount = 0
                 return []
-        self.rowcount = len(data) + 1
         return [tuple(el) for el in data]
