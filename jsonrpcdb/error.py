@@ -1,5 +1,5 @@
 try:
-    from exceptions import Exception, StandardError, Warning
+    from exceptions import Exception, StandardError
 except ImportError:
     # Python 3
     StandardError = Exception
@@ -10,11 +10,6 @@ INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
 INTERNAL_ERROR = -32603
-
-
-class Warning(Warning):
-    """Exception raised for important warnings like data truncations
-       while inserting, etc."""
 
 
 class Error(Exception):

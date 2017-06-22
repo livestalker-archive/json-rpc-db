@@ -32,6 +32,7 @@ class Connection(object):
         self._prepare_auth(**kwargs)
 
     def cursor(self):
+        """Return cursor object."""
         return Cursor(self)
 
     def commit(self):
@@ -47,9 +48,7 @@ class Connection(object):
         pass
 
     def get_url(self):
-        """Create url string from connection parameters.
-
-        """
+        """Create url string from connection parameters."""
         conn_params = self.conn_params
         if conn_params['port'] != HTTP_PORT:
             host = '{}:{}'.format(conn_params['host'], conn_params['port'])
@@ -85,6 +84,7 @@ class Connection(object):
         self.conn_params = conn_params
 
     def _prepare_auth(self, **kwargs):
+        """Prepare authentication parameters."""
         auth_type = kwargs.get('auth_type', None)
         auth_params = kwargs.get('auth_params', {})
         if auth_type:

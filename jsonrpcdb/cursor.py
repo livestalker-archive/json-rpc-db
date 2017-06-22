@@ -19,6 +19,8 @@ class Cursor(object):
         self.description = tuple()
         """tuple: This read-only attribute is a sequence of 7-item sequences.
         Each of these sequences contains information describing one result column.
+        We do not have any information about structure of json rpc result.
+        So simple empty tuple.
         """
         self.rowcount = -1
         """int: This read-only attribute specifies the number of rows that the last .execute*()
@@ -78,6 +80,7 @@ class Cursor(object):
             raise OperationalError()
 
     def executemany(self, operation, *args):
+        # TODO realize method.
         pass
 
     def fetchone(self):
@@ -90,6 +93,12 @@ class Cursor(object):
             return result
         except IndexError:
             return None
+
+    def fetchmany(self, size=None):
+        # TODO realize method
+        if not size:
+            size = self.arraysize
+        return None
 
     def fetchall(self):
         """Fetch all (remaining) rows of a query result,
