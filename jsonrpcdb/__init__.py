@@ -1,5 +1,9 @@
 from .connection import Connection
 
+__version = (0, 1, 0)
+__version__ = version = '.'.join(map(str, __version))
+__project__ = PROJECT = __name__
+
 apilevel = '2.0'
 threadsafety = 3
 paramstyle = 'pyformat'
