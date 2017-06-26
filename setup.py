@@ -39,7 +39,7 @@ setup(
 
     keywords='db-api json-rpc',
 
-    packages=find_packages(exclude=['tests*']),
+    packages=find_packages(exclude=['tests']),
 
     install_requires=['requests'],
 
