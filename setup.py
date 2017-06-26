@@ -5,7 +5,7 @@ from os import path
 
 root_project = path.abspath(path.dirname(__file__))
 
-with open(path.join(root_project, 'README.md'), encoding='utf-8') as f:
+with open(path.join(root_project, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -32,7 +32,7 @@ setup(
         'Topic :: Database',
         'Topic :: Database :: Front-Ends',
         'Topic :: Software Development',
-        'Topic :: Software Development :: Libraries :: Python Modules'
+        'Topic :: Software Development :: Libraries :: Python Modules',
 
         'License :: OSI Approved :: MIT License',
     ],
