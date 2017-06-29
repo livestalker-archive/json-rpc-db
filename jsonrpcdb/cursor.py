@@ -103,7 +103,7 @@ class Cursor(object):
     def fetchall(self):
         """Fetch all (remaining) rows of a query result,
         returning them as a sequence of sequences (e.g. a list of tuples)."""
-        return self._prepare_all_result()
+        return self._data
 
     def _update_rowcount(self, data):
         """Update rowcount.
